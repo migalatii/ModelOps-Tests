@@ -1,0 +1,8 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/evaluation/run-eval-task-step.yml
+steps:
+  - task: Bash@3
+    displayName: 'Prepare Evaluation Task'
+    inputs:
+      targetType: 'inline'
+      script: |
+        echo "[INFO] Ready for evaluation execution"
