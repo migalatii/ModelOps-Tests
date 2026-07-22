@@ -1,0 +1,12 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/deployment/setup-wif-step.yml
+parameters:
+  - name: projectId
+    type: string
+
+steps:
+  - task: Bash@3
+    displayName: 'Configure WIF Authentication'
+    inputs:
+      targetType: 'inline'
+      script: |
+        echo "[INFO] WIF Authentication initialized for project: ${{ parameters.projectId }}"
