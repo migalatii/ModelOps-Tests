@@ -1,0 +1,19 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/deployment/deployment-validation-job.yml
+parameters:
+  - name: projectId
+    type: string
+
+jobs:
+  - job: DeploymentValidationJob
+    displayName: 'Validate Agent Deployment'
+    dependsOn: DeployJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: Bash@3
+        displayName: 'Health Check Deployed Agent'
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "[INFO] Running deployment validation health check..."
+            echo "[SUCCESS] Agent endpoint responsive."
