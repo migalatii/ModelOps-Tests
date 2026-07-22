@@ -1,0 +1,41 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/evaluation/evaluate-model-based-jobs.yml
+# Invokes evaluate-model-based-google.yml component template from ModelOps-Templates
+
+parameters:
+  - name: projectId
+    type: string
+  - name: gcpRegion
+    type: string
+  - name: agentId
+    type: string
+  - name: datasetPath
+    type: string
+  - name: traceBucketName
+    type: string
+  - name: allowMock
+    type: boolean
+    default: false
+  - name: wifProjectNumber
+    type: string
+  - name: wifPool
+    type: string
+  - name: wifProvider
+    type: string
+  - name: serviceAccount
+    type: string
+
+jobs:
+  - template: ../../../../../ModelOps-Templates/components/evaluate-model-based-google/evaluate-model-based-google.yml
+    parameters:
+      jobName: 'EvaluateModelBasedJob'
+      projectId: ${{ parameters.projectId }}
+      gcpRegion: ${{ parameters.gcpRegion }}
+      agentId: ${{ parameters.agentId }}
+      datasetPath: ${{ parameters.datasetPath }}
+      traceBucketName: ${{ parameters.traceBucketName }}
+      scriptPath: '$(Build.SourcesDirectory)/scripts/evaluate_model_based.py'
+      allowMock: ${{ parameters.allowMock }}
+      wifProjectNumber: ${{ parameters.wifProjectNumber }}
+      wifPool: ${{ parameters.wifPool }}
+      wifProvider: ${{ parameters.wifProvider }}
+      serviceAccount: ${{ parameters.serviceAccount }}
