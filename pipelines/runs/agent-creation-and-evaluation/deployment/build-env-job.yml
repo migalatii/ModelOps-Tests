@@ -1,0 +1,7 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/deployment/build-env-job.yml
+jobs:
+  - template: ../../../../../ModelOps-Templates/components/evaluate-metric-based-google/build_python_environment.yml
+    parameters:
+      jobName: 'BuildJob'
+      pythonVersion: '3.11'
+      requirementsPath: '$(Build.SourcesDirectory)/requirements.txt'
