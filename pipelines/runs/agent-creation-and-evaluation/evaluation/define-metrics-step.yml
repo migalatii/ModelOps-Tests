@@ -1,0 +1,8 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/evaluation/define-metrics-step.yml
+steps:
+  - task: Bash@3
+    displayName: 'Define Evaluation Metrics'
+    inputs:
+      targetType: 'inline'
+      script: |
+        echo "[INFO] Defining Computation metrics (exact_match, rouge_l) and Model-based metrics (groundedness, safety, fluency, coherence)"
