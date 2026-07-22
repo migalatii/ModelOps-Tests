@@ -1,0 +1,47 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/deployment/deploy-agent-job.yml
+parameters:
+  - name: projectId
+    type: string
+  - name: gcpRegion
+    type: string
+    default: 'us-central1'
+  - name: stagingBucket
+    type: string
+    default: '$(traceBucketName)'
+
+jobs:
+  - job: DeployJob
+    displayName: 'Deploy Weather Agent to Vertex AI'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Download Python .venv'
+        inputs:
+          buildType: 'current'
+          artifactName: 'python-venv'
+          targetPath: '$(Build.SourcesDirectory)/.venv'
+
+      - task: Bash@3
+        displayName: 'Fix Execution Permissions'
+        inputs:
+          targetType: 'inline'
+          script: |
+            chmod +x $(Build.SourcesDirectory)/.venv/bin/python* || true
+
+      - task: Bash@3
+        name: deployAgentTask
+        displayName: 'Deploy Weather Agent ReasoningEngine'
+        inputs:
+          targetType: 'inline'
+          script: |
+            set -e
+            source $(Build.SourcesDirectory)/.venv/bin/activate
+            
+            DEPLOY_SCRIPT="$(Build.SourcesDirectory)/src/weather_agent/deploy_agent.py"
+            
+            python3 $DEPLOY_SCRIPT \
+              --project_id "${{ parameters.projectId }}" \
+              --location "${{ parameters.gcpRegion }}" \
+              --gcs_staging_bucket "gs://${{ parameters.stagingBucket }}" \
+              --display_name "Weather-Agent-ReasoningEngine-$(Build.BuildId)"
