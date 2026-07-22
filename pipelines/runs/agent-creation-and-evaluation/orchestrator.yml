@@ -1,0 +1,93 @@
+# ModelOps-Tests/pipelines/runs/agent-creation-and-evaluation/orchestrator.yml
+# Master Orchestrator ADO Pipeline Entrypoint
+# Orchestrates: BuildEnv -> DeployAgent -> EvaluateMetricBased & EvaluateModelBased
+
+trigger: none
+pr: none
+
+parameters:
+  - name: runDeployment
+    displayName: 'Run Agent Deployment Stage (Set false to bypass deployment)'
+    type: boolean
+    default: true
+
+  - name: existingAgentId
+    displayName: 'Existing Agent ID (Used if runDeployment is false)'
+    type: string
+    default: ''
+
+  - name: allowMockDataset
+    displayName: 'Allow Mock Fallback Dataset (Set true for dry-runs)'
+    type: boolean
+    default: false
+
+variables:
+  - group: conversational-agent
+
+stages:
+  # -------------------------------------------------------------------
+  # STAGE 1: Build Python Virtual Environment (.venv)
+  # -------------------------------------------------------------------
+  - stage: BuildEnv
+    displayName: 'Stage 1: Build Python Virtualenv'
+    jobs:
+      - template: deployment/build-env-job.yml
+
+  # -------------------------------------------------------------------
+  # STAGE 2: Deploy Weather Agent ReasoningEngine
+  # -------------------------------------------------------------------
+  - stage: DeployAgent
+    displayName: 'Stage 2: Deploy Weather Agent'
+    dependsOn: BuildEnv
+    condition: and(succeeded(), eq(${{ parameters.runDeployment }}, true))
+    jobs:
+      - template: deployment/deploy-agent-job.yml
+        parameters:
+          projectId: $(projectId)
+          gcpRegion: $(gcpRegion)
+      - template: deployment/deployment-validation-job.yml
+        parameters:
+          projectId: $(projectId)
+
+  # -------------------------------------------------------------------
+  # STAGE 3: Evaluate Deployed Agent (Metric-Based & Model-Based)
+  # -------------------------------------------------------------------
+  - stage: EvaluateAgent
+    displayName: 'Stage 3: Evaluate Weather Agent'
+    dependsOn:
+      - BuildEnv
+      - DeployAgent
+    condition: in(dependencies.DeployAgent.result, 'Succeeded', 'Skipped')
+    variables:
+      ${{ if eq(parameters.runDeployment, true) }}:
+        resolvedAgentId: $[ stageDependencies.DeployAgent.DeployJob.outputs['deployAgentTask.deployedAgentId'] ]
+      ${{ if eq(parameters.runDeployment, false) }}:
+        resolvedAgentId: '${{ parameters.existingAgentId }}'
+    jobs:
+      # Component 1: Computation-Based Metric Evaluation
+      - template: evaluation/evaluate-metric-based-jobs.yml
+        parameters:
+          projectId: $(projectId)
+          gcpRegion: $(gcpRegion)
+          agentId: $(resolvedAgentId)
+          datasetPath: '$(Build.SourcesDirectory)/data/evalset.jsonl'
+          traceBucketName: $(traceBucketName)
+          allowMock: ${{ parameters.allowMockDataset }}
+          wifProjectNumber: $(wifProjectNumber)
+          wifPool: $(wifPool)
+          wifProvider: $(wifProvider)
+          serviceAccount: $(serviceAccount)
+
+      # Component 2: Model-Based Metric Evaluation
+      - template: evaluation/evaluate-model-based-jobs.yml
+        parameters:
+          projectId: $(projectId)
+          gcpRegion: $(gcpRegion)
+          agentId: $(resolvedAgentId)
+          datasetPath: '$(Build.SourcesDirectory)/data/evalset.jsonl'
+          traceBucketName: $(traceBucketName)
+          allowMock: ${{ parameters.allowMockDataset }}
+          wifProjectNumber: $(wifProjectNumber)
+          wifPool: $(wifPool)
+          wifProvider: $(wifProvider)
+          serviceAccount: $(serviceAccount)
