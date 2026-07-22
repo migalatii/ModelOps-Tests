@@ -1,0 +1,5 @@
+{"prompt": "What is the weather in Seattle right now?", "reference": "Seattle, WA is currently 65°F and partly cloudy."}
+{"prompt": "Can you check the weather forecast for Tokyo?", "reference": "Tokyo, Japan is currently 22°C (72°F) with clear skies."}
+{"prompt": "Is it raining in New York City today?", "reference": "New York, NY is currently 58°F with rain and high humidity."}
+{"prompt": "Tell me the weather report for London.", "reference": "London, UK is currently 15°C (59°F) and overcast."}
+{"prompt": "What is the current temperature and conditions in Chicago?", "reference": "Chicago, IL is currently 70°F (21°C) and mostly sunny."}
